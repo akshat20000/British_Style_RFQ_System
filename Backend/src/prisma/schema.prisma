@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum AuctionStatus {
+  ACTIVE
+  CLOSED
+  FORCE_CLOSED
+}
+
+enum ExtensionTrigger {
+  BID_RECEIVED
+  ANY_RANK_CHANGE
+  L1_RANK_CHANGE
+}
+
+enum AuctionEventType {
+  BID_SUBMITTED
+  AUCTION_EXTENDED
+  AUCTION_CLOSED
+}
+
+model RFQ {
+  id                String        @id @default(uuid())
+  name              String
+  referenceId       String        @unique
+
+  startTime         DateTime
+  closeTime         DateTime
+  forcedCloseTime   DateTime
+
+  pickupServiceDate DateTime?
+  status            AuctionStatus @default(ACTIVE)
+
+  auctionConfig     AuctionConfig?
+  bids              Bid[]
+  events            AuctionEvent[]
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model AuctionConfig {
+  id                     String           @id @default(uuid())
+  
+  rfqId                  String           @unique
+  rfq                    RFQ              @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  triggerWindowMinutes   Int
+  extensionMinutes       Int
+  extensionTrigger       ExtensionTrigger
+
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+}
+
+model Bid {
+  id                String    @id @default(uuid())
+
+  rfqId             String
+  rfq               RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  supplierId        String
+  supplierName      String
+
+  amount            Decimal   @db.Decimal(12, 2)
+
+  freightCharges    Decimal?  @db.Decimal(12, 2)
+  originCharges     Decimal?  @db.Decimal(12, 2)
+  destinationCharges Decimal? @db.Decimal(12, 2)
+
+  transitTime       Int?
+  quoteValidity     DateTime?
+
+  createdAt         DateTime  @default(now())
+
+  events            AuctionEvent[]
+
+  @@index([rfqId, amount])
+  @@index([rfqId, createdAt])
+}
+
+model AuctionEvent {
+  id              String            @id @default(uuid())
+
+  rfqId           String
+  rfq             RFQ              @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+
+  type            AuctionEventType
+  reason          String?
+
+  bidId           String?
+  bid             Bid?             @relation(fields: [bidId], references: [id], onDelete: SetNull)
+
+  oldCloseTime    DateTime?
+  newCloseTime    DateTime?
+
+  createdAt       DateTime          @default(now())
+
+  @@index([rfqId, createdAt])
+}
