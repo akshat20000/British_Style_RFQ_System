@@ -23,6 +23,10 @@ export default function CreateRFQ() {
         e.preventDefault();
         setError(null);
 
+        if (new Date(closeTime) <= new Date(startTime)) {
+            setError('Bid Close Time must be later than Bid Start Time.');
+            return;
+        }
         if (new Date(forcedCloseTime) <= new Date(closeTime)) {
             setError('Forced Bid Close Time must be later than Bid Close Time.');
             return;

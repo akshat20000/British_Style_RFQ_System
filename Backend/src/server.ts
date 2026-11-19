@@ -20,7 +20,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/rfqs", rfqRoutes);
-app.use("/api/rfqs", bidRoutes);
+app.use("/api/bids", bidRoutes);
 
 app.use((req, res) => {
   res.status(404).json({

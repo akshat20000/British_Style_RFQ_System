@@ -8,9 +8,9 @@ import {
 
 const router = Router();
 
-router.post("/:rfqId/bids", submitBid);
+router.post("/:rfqId", submitBid);
 
-router.get("/:rfqId/bids", getBids);
+router.get("/:rfqId", getBids);
 
 router.get("/:rfqId/activity", getAuctionActivity);
 
